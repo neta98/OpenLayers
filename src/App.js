@@ -79,6 +79,7 @@ const MapComponent = () => {
   });
 
   select.on('select', (event) => {
+    popup.hide()
     const feature = event.selected[0];
     if (feature && !popup.active) {
       popup.show(feature.getGeometry().getInteriorPoint().getCoordinates(), '<div>Popup contenuto</div>'); // Mostra il popup
