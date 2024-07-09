@@ -18,16 +18,34 @@ import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import proj4 from 'proj4';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-const PopupComponent = () => {
+const PopupComponent = ({ infoMap }) => {
+  const [info, setInfo] = useState(null);
+
+  const handleClick = () => {
+    console.log("infoMap", infoMap);
+    setInfo(infoMap);
+  };
+
   return (
     <div>
-      <button onClick={() => console.log("OK")} className='btn btn-primary'>OK</button>
+      <button onClick={handleClick} className='btn btn-primary'> Info </button>
+      {info && (
+        <div style={{ background: '#333', color: '#fff', padding: '10px', marginTop: '10px', borderRadius: '5px' }}>
+          <pre>
+            <strong>Frame Index:</strong> {info?.mapBrowserEvent?.map?.frameIndex_}{"\n"}
+            <strong>Pixel To Coordinate Transform:</strong> {JSON.stringify(infoMap?.mapBrowserEvent?.map?.frameState_?.pixelToCoordinateTransform, null, 2)}{"\n"}
+            <strong>Extent:</strong> {JSON.stringify(info?.mapBrowserEvent?.map?.frameState_?.extent, null, 2)}{"\n"}
+            <strong>Coordinate to Pixel Transform:</strong> {JSON.stringify(infoMap?.mapBrowserEvent?.map?.frameState_?.coordinateToPixelTransform, null, 2)}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
+
 
 const MapComponent = () => {
 
@@ -96,7 +114,7 @@ const MapComponent = () => {
 
       // Monta il componente React nel contenitore usando createRoot
       const root = createRoot(container);
-      root.render(<PopupComponent />);
+      root.render(<PopupComponent infoMap={event} />);
 
       popup.show(feature.getGeometry().getInteriorPoint().getCoordinates(), container); // Mostra il popup
     } else {
