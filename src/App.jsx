@@ -19,6 +19,16 @@ import 'ol-ext/dist/ol-ext.css';
 import Select from 'ol/interaction/Select';
 import { click } from 'ol/events/condition';
 import Popup from 'ol-ext/overlay/Popup';
+import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
+
+const PopupComponent = () => {
+  return (
+    <div>
+      <button onClick={() => console.log("OK")} className='btn btn-primary'>OK</button>
+    </div>
+  );
+}
 
 const MapComponent = () => {
 
@@ -82,7 +92,14 @@ const MapComponent = () => {
     popup.hide()
     const feature = event.selected[0];
     if (feature && !popup.active) {
-      popup.show(feature.getGeometry().getInteriorPoint().getCoordinates(), '<div>Popup contenuto</div>'); // Mostra il popup
+      // Crea un contenitore per il componente React
+      const container = document.createElement('div');
+
+      // Monta il componente React nel contenitore usando createRoot
+      const root = createRoot(container);
+      root.render(<PopupComponent />);
+
+      popup.show(feature.getGeometry().getInteriorPoint().getCoordinates(), container); // Mostra il popup
     } else {
       popup.hide()
     }
