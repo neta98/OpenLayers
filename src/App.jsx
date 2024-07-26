@@ -49,6 +49,9 @@ const PopupComponent = ({ infoMap }) => {
 
 const MapComponent = () => {
 
+  const [features, setFeatures] = useState([]);
+  const [map, setMap] = useState();
+
   // Definizione del sistema di coordinate EPSG:3003 con proj4
   proj4.defs('EPSG:3003', '+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=1500000 +y_0=0 +ellps=intl +units=m +no_defs');
   // Definizione del sistema di coordinate EPSG:3857 con proj4
@@ -122,6 +125,17 @@ const MapComponent = () => {
     }
   });
 
+  // Funzione per centrare la view sul poligono selezionato tramite i button nella sidebar
+  const onClickFeature = id => {
+    const selectedFeature = features.find(feature => feature.ol_uid === id);
+    const geometry = selectedFeature.getGeometry();
+    const extent = geometry.getExtent();
+    map.getView().fit(extent, { padding: [20, 20, 20, 20] });
+  }
+
+  // Funzione per aggiornare lo stato delle features
+  const updateFeatures = () => setFeatures(vectorSource.getFeatures());
+
   useEffect(() => {
     // Creazione della mappa OpenLayers
     const map = new Map({
@@ -168,14 +182,33 @@ const MapComponent = () => {
 
     map.addOverlay(popup);
 
+    setMap(map);
+    setFeatures(vectorSource.getFeatures());
+
+    // Aggiungi listener agli eventi delle features
+    vectorSource.on('addfeature', updateFeatures);
+    vectorSource.on('removefeature', updateFeatures);
+    vectorSource.on('changefeature', updateFeatures);
+
+    // Pulisci i listener quando il componente viene smontato
     return () => {
-      map.setTarget(null); // Cleanup della mappa quando il componente viene smontato
+      vectorSource.un('addfeature', updateFeatures);
+      vectorSource.un('removefeature', updateFeatures);
+      vectorSource.un('changefeature', updateFeatures);
+      map.setTarget(null);  // Cleanup della mappa quando il componente viene smontato
     };
 
   }, []);
 
   return (
-    <div id="map" style={{ width: '100%', height: '100vh' }}></div>
+    <div style={{ display: "flex" }}>
+      <div id="map" style={{ width: '80%', height: '100vh' }}></div>
+      <div id="sidebar" style={{ display: "flex", flexDirection: "column", width: '20%', height: '100vh' }}>
+        {
+          features.map(feature => <div style={{ display: "flex", justifyContent: "center", padding: 10 }}><button className='btn btn-primary' onClick={() => onClickFeature(feature.ol_uid)}>{feature.ol_uid}</button></div>)
+        }
+      </div>
+    </div>
   );
 };
 
